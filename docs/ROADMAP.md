@@ -4,7 +4,7 @@
 
 ## Foundation
 - [x] **1. Scaffold project folder** — README, .gitignore, .env.example, docker-compose.yml, folder tree
-- [ ] **2. Postgres + pgvector running locally** — `docker compose up` produces a working DB
+- [x] **2. Postgres + pgvector running** — Neon connection verified, `vector` + `pg_trgm` extensions installed
 - [ ] **3. FastAPI backend skeleton** — settings, DB connection, `/health` endpoint
 - [ ] **4. Database schema + migrations** — all tables via Alembic
 - [ ] **5. Next.js frontend skeleton** — Next 15 + Tailwind + design tokens copied from portfolio
@@ -29,4 +29,4 @@
 
 ---
 
-**Currently:** finished step 1.
+**Currently:** finished step 2.
