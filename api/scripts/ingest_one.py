@@ -19,15 +19,15 @@ from pathlib import Path
 # Allow `from app.*` imports when run as a standalone script.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app import db                         # noqa: E402
-from app.ingest.pipeline import ingest_file  # noqa: E402
-from app.logging import configure_logging    # noqa: E402
+from app import db                                 # noqa: E402
+from app.ingest.pipeline import run_pipeline_inline  # noqa: E402
+from app.logging import configure_logging            # noqa: E402
 
 
 async def _run(path: Path) -> int:
     configure_logging(json=False)
     try:
-        result = await ingest_file(path)
+        result = await run_pipeline_inline(path, triggered_by="cli")
     finally:
         await db.close_pool()
 

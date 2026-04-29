@@ -12,7 +12,7 @@
 ## Ingestion
 - [x] **6. SEC filing fetcher** — 32 filings (8 companies × 2 10-K + 2 10-Q), 76 MB cached locally, idempotent re-runs
 - [x] **7. HTML → chunks pipeline (sync)** — extract (iXBRL noise stripped) → chunk (paragraph-aware, ≤500 tok) → embed → index. AAPL 10-Q: 44 chunks/$0.0003/6.7s; MSFT 10-K: 172 chunks/$0.0013/19s
-- [ ] **8. Async pipeline + SSE progress** — background job, state in DB, live progress streaming
+- [x] **8. Async pipeline + SSE progress** — pipeline_runs/_steps tables wired; in-memory event broker; POST /pipelines/runs, GET .../events; bulk-ingested all 32 filings → 4,411 chunks / 1.64M tokens / $0.033
 
 ## Retrieval & Answer
 - [ ] **9. Hybrid retrieval + local rerank** — `/search` returns ranked chunks (BM25 + dense + cross-encoder)
@@ -29,4 +29,4 @@
 
 ---
 
-**Currently:** finished step 7.
+**Currently:** finished step 8.
