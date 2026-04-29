@@ -10,8 +10,8 @@
 - [x] **5. Next.js frontend skeleton** — Next 16 + Tailwind, design tokens from portfolio, 3 route shells, /health probe wired
 
 ## Ingestion
-- [ ] **6. SEC filing fetcher** — script downloading latest 10-K + 10-Q for 8 companies
-- [ ] **7. PDF → chunks pipeline (sync)** — extract → chunk → embed → index a single doc end-to-end
+- [x] **6. SEC filing fetcher** — 32 filings (8 companies × 2 10-K + 2 10-Q), 76 MB cached locally, idempotent re-runs
+- [ ] **7. HTML → chunks pipeline (sync)** — extract → chunk → embed → index a single doc end-to-end
 - [ ] **8. Async pipeline + SSE progress** — background job, state in DB, live progress streaming
 
 ## Retrieval & Answer
@@ -29,4 +29,4 @@
 
 ---
 
-**Currently:** finished step 5.
+**Currently:** finished step 6.

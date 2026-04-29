@@ -9,10 +9,13 @@
 
 # ─────────────────────────────────────────────────────────────────
 # Data (corpus + caches — never commit)
+# Exception: data/raw/_index.csv is committed so the repo records
+# which filings have been fetched (the .htm files themselves stay out).
 # ─────────────────────────────────────────────────────────────────
 data/raw/*
 data/processed/*
 !data/raw/.gitkeep
+!data/raw/_index.csv
 !data/processed/.gitkeep
 *.pdf
 *.parquet
