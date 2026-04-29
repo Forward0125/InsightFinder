@@ -1,0 +1,27 @@
+# ─────────────────────────────────────────────────────────────────
+# Auto-detect text files and normalize to LF on commit.
+# Files listed below are forced to LF in the working tree too —
+# shell scripts and SQL break on Linux servers if they have CRLF.
+# ─────────────────────────────────────────────────────────────────
+* text=auto
+
+# Always LF — these run on Linux (Docker, Fly.io, Vercel build).
+*.sh    text eol=lf
+*.bash  text eol=lf
+*.sql   text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+Dockerfile text eol=lf
+
+# Always CRLF — Windows-only files.
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+
+# Binaries — never touch.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.pdf  binary
+*.parquet binary

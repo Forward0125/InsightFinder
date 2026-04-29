@@ -1,0 +1,25 @@
+services:
+  postgres:
+    # pgvector image bundles Postgres + the pgvector extension preinstalled.
+    # Postgres FTS (BM25-like) is built in — no extra extension needed.
+    image: pgvector/pgvector:pg16
+    container_name: insightfinder-postgres
+    environment:
+      POSTGRES_USER: insight
+      POSTGRES_PASSWORD: insight
+      POSTGRES_DB: insightfinder
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Init scripts run once on first boot — enables pgvector + pg_trgm.
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U insight -d insightfinder"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pgdata:
