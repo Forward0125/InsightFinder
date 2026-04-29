@@ -16,6 +16,10 @@ dependencies = [
     "alembic>=1.13",
     "sqlalchemy>=2.0",
     "psycopg[binary]>=3.2",
+    # Ingestion
+    "selectolax>=0.3",     # fast HTML parsing (Modest engine, C-based)
+    "tiktoken>=0.7",       # OpenAI token counting for chunk-size budgeting
+    "openai>=1.50",        # text-embedding-3-small + Claude via Anthropic later
 ]
 
 [dependency-groups]
