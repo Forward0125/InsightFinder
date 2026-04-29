@@ -44,3 +44,21 @@ uv run ruff check .                # lint
 uv run ruff format .               # format
 uv run pytest                      # tests
 ```
+
+## Migrations
+
+Alembic with hand-written raw-SQL migrations (no SQLAlchemy ORM).
+
+```bash
+uv run alembic upgrade head           # apply all pending migrations
+uv run alembic downgrade -1           # roll back one migration
+uv run alembic current                # show current revision
+uv run alembic history                # list all revisions
+uv run alembic revision -m "name"     # create new migration file (raw-SQL only)
+```
+
+After running `alembic upgrade head`, sanity-check the schema:
+
+```bash
+uv run python scripts/inspect_schema.py
+```

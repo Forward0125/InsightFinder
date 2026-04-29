@@ -10,6 +10,12 @@ dependencies = [
     "pgvector>=0.3",
     "pydantic-settings>=2.5",
     "structlog>=24.4",
+    # Migrations -- Alembic depends on SQLAlchemy, and SQLAlchemy needs
+    # a sync driver. We ONLY use these for `alembic upgrade head`; the
+    # runtime app uses asyncpg.
+    "alembic>=1.13",
+    "sqlalchemy>=2.0",
+    "psycopg[binary]>=3.2",
 ]
 
 [dependency-groups]
