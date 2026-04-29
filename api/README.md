@@ -45,6 +45,29 @@ uv run ruff format .               # format
 uv run pytest                      # tests
 ```
 
+## Search
+
+```bash
+curl -X POST http://localhost:8000/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "data center capital expenditures", "mode": "hybrid", "top_k": 5}'
+```
+
+Modes:
+
+| `mode`           | What runs                                  | Typical latency (warm) |
+|------------------|---------------------------------------------|------------------------|
+| `bm25`           | Postgres FTS only                           | ~100 ms                |
+| `dense`          | OpenAI embed + pgvector HNSW                | ~700 ms                |
+| `hybrid`         | BM25 + dense in parallel + RRF              | ~700 ms                |
+| `hybrid_rerank`  | hybrid + local cross-encoder (`MiniLM-L6`)  | 8–16 s on CPU          |
+
+The reranker (`cross-encoder/ms-marco-MiniLM-L-6-v2`) is lazy-loaded on
+first use (~5–10 s download + load). Subsequent calls reuse the
+in-memory model. On CPU the rerank step dominates total latency; the
+default UI surface should use `hybrid` mode and treat `hybrid_rerank`
+as an opt-in "high quality" toggle.
+
 ## Migrations
 
 Alembic with hand-written raw-SQL migrations (no SQLAlchemy ORM).

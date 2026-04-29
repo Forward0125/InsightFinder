@@ -7,7 +7,9 @@ limits. Embeddings come back in input order.
 
 from __future__ import annotations
 
-from openai import OpenAI
+import asyncio
+
+from openai import AsyncOpenAI, OpenAI
 
 from app.logging import get_logger
 from app.settings import settings
@@ -48,3 +50,21 @@ def embed_texts(
         embeddings.extend(d.embedding for d in resp.data)
 
     return embeddings
+
+
+# Async client is cached so we don't re-establish HTTP/2 connections per query.
+_async_client: AsyncOpenAI | None = None
+_async_lock = asyncio.Lock()
+
+
+async def embed_query(text: str, *, model: str | None = None) -> list[float]:
+    """Embed a single search query. Async to avoid blocking the event loop."""
+    global _async_client
+    if _async_client is None:
+        async with _async_lock:
+            if _async_client is None:
+                _async_client = AsyncOpenAI(api_key=settings.openai_api_key)
+
+    model = model or settings.embedding_model
+    resp = await _async_client.embeddings.create(model=model, input=[text])
+    return resp.data[0].embedding

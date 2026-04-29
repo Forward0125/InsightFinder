@@ -15,7 +15,7 @@
 - [x] **8. Async pipeline + SSE progress** — pipeline_runs/_steps tables wired; in-memory event broker; POST /pipelines/runs, GET .../events; bulk-ingested all 32 filings → 4,411 chunks / 1.64M tokens / $0.033
 
 ## Retrieval & Answer
-- [ ] **9. Hybrid retrieval + local rerank** — `/search` returns ranked chunks (BM25 + dense + cross-encoder)
+- [x] **9. Hybrid retrieval + local rerank** — POST /search with 4 modes (bm25 / dense / hybrid / hybrid_rerank). Postgres FTS + pgvector run in parallel via two pool acquires + asyncio.gather, fused with RRF. Cross-encoder MiniLM-L6 reranks. Steady-state: hybrid ~700 ms, hybrid_rerank ~16 s on CPU
 - [ ] **10. Streaming answer with citations** — Claude generates answer with `[1][2][3]` citations
 - [ ] **11. Eval gates** — faithfulness, relevance, hallucination scoring per query
 
@@ -29,4 +29,4 @@
 
 ---
 
-**Currently:** finished step 8.
+**Currently:** finished step 9.

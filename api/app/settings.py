@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     openai_api_key: str = Field(default="", description="OpenAI API key")
     anthropic_api_key: str = Field(default="", description="Anthropic API key")
     embedding_model: str = "text-embedding-3-small"
-    reranker_model: str = "BAAI/bge-reranker-base"
+    reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     generator_model: str = "claude-sonnet-4-6"
 
     # ─── API server ─────────────────────────────────────────────

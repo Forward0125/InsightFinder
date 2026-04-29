@@ -13,7 +13,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import db
-from app.api import health, pipelines
+from app.api import health, pipelines, search
 from app.logging import configure_logging, get_logger
 from app.settings import settings
 
@@ -53,3 +53,4 @@ app.add_middleware(
 
 app.include_router(health.router)
 app.include_router(pipelines.router)
+app.include_router(search.router)
