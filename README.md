@@ -21,7 +21,7 @@ All sourced from public [SEC EDGAR](https://www.sec.gov/edgar.shtml).
 | Layer | Choice |
 |---|---|
 | Frontend | Next.js 15 (App Router), Tailwind, framer-motion, React Flow, Tremor, Recharts |
-| Backend | FastAPI (Python 3.12) |
+| Backend | FastAPI (Python 3.12+), asyncpg, structlog |
 | Database | Postgres 16 + `pgvector` + Postgres FTS (BM25) |
 | Embeddings | OpenAI `text-embedding-3-small` (1536-dim) |
 | Reranker | Local cross-encoder `BAAI/bge-reranker-base` (sentence-transformers) |
@@ -64,9 +64,8 @@ docker compose up -d
 
 # 3. Backend
 cd api
-uv sync                      # or: pip install -e .
-alembic upgrade head
-uv run uvicorn app.main:app --reload --port 8000
+uv sync                      # creates .venv and installs deps
+uv run python run.py         # starts dev server on http://localhost:8000
 
 # 4. Frontend (in a second terminal)
 cd web
