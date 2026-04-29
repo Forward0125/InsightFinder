@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────────
+   Design Tokens — copied from the TwilightCore portfolio so this
+   project visually matches the case-study screenshots.
+   Usage: rgb(var(--color-background) / 0.8)
+───────────────────────────────────────────────────────────────── */
+
+:root {
+  color-scheme: dark;
+
+  --color-background:    4   4  12;
+  --color-surface:      10  10  22;
+  --color-surface-high: 18  18  34;
+  --color-foreground:  235 232 225;
+  --color-foreground-2:185 182 175;
+  --color-foreground-3:145 142 135;
+  --color-border:      255 255 255;
+  --color-accent-blue:  59 130 246;
+  --color-accent-violet:139  92 246;
+  --color-accent-warm: 163 106 254;
+
+  --color-glow-warm:   163 106 254;
+  --color-glow-blue:    59 130 246;
+  --color-glow-violet: 139  92 246;
+
+  --bg-glow-multiplier: 1;
+  --bg-blur-boost: 0px;
+}
+
+.light {
+  color-scheme: light;
+
+  --color-background:  248 246 242;
+  --color-surface:     255 253 249;
+  --color-surface-high:240 238 232;
+  --color-foreground:   12  12  16;
+  --color-foreground-2: 60  58  52;
+  --color-foreground-3: 90  88  80;
+  --color-border:        0   0   0;
+  --color-accent-blue:  37  99 235;
+  --color-accent-violet:124  58 237;
+  --color-accent-warm: 130  70 230;
+
+  --color-glow-warm:    99  60 190;
+  --color-glow-blue:    37  80 200;
+  --color-glow-violet:  80  50 180;
+
+  --bg-glow-multiplier: 0.7;
+  --bg-blur-boost: 20px;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Base
+───────────────────────────────────────────────────────────────── */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border-color: rgb(var(--color-border) / 0.06);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  body {
+    background-color: rgb(var(--color-background));
+    color: rgb(var(--color-foreground));
+    font-family: var(--font-inter), system-ui, sans-serif;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+    min-height: 100dvh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  a { color: inherit; text-decoration: none; }
+  img, video { max-width: 100%; height: auto; }
+
+  ::selection {
+    background-color: rgb(var(--color-accent-warm) / 0.25);
+    color: rgb(var(--color-foreground));
+  }
+
+  ::-webkit-scrollbar       { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--color-foreground-3) / 0.3);
+    border-radius: 0;
+  }
+
+  :focus-visible {
+    outline: 1px solid rgb(var(--color-accent-warm) / 0.8);
+    outline-offset: 2px;
+    border-radius: 0;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Utilities
+───────────────────────────────────────────────────────────────── */
+
+@layer utilities {
+  .gradient-text {
+    background: linear-gradient(
+      135deg,
+      rgb(var(--color-accent-blue)),
+      rgb(var(--color-accent-warm))
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(rgb(var(--color-border) / 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--color-border) / 0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .bg-grid-fine {
+    background-image:
+      linear-gradient(rgb(var(--color-border) / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--color-border) / 0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .glass {
+    background: rgb(var(--color-surface) / 0.8);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid rgb(var(--color-border) / 0.06);
+  }
+
+  .text-balance { text-wrap: balance; }
+  .text-pretty  { text-wrap: pretty; }
+}

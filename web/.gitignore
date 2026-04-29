@@ -1,0 +1,39 @@
+# Next.js
+/.next/
+/out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Dependencies
+/node_modules
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Build outputs
+/build
+/dist
+
+# Misc
+.DS_Store
+*.pem
+
+# Testing
+/coverage
+
+# Env (the .env at repo root is the source of truth)
+.env*.local
+.env
+
+# Editor
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+
+# Vercel
+.vercel
