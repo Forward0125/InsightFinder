@@ -46,6 +46,135 @@ export interface HealthResponse {
   db: 'ok' | 'unreachable'
 }
 
+// ─── Pipelines ───────────────────────────────────────────────────
+
+export type PipelineStatus = 'queued' | 'running' | 'success' | 'failed' | 'cancelled'
+export type StepName = 'extract' | 'chunk' | 'embed' | 'index'
+
+export interface PipelineInfo {
+  id:           number
+  slug:         string
+  name:         string
+  description:  string | null
+  is_demo:      boolean
+  runs_total:   number
+  runs_running: number
+  runs_success: number
+  runs_failed:  number
+}
+
+export interface FilingChip {
+  ticker:           string
+  filing_type:      string
+  period_of_report: string
+  accession_number: string
+  local_path:       string
+  size_bytes:       number
+}
+
+export interface RunListItem {
+  id:           number
+  status:       PipelineStatus
+  triggered_by: string | null
+  started_at:   string | null
+  finished_at:  string | null
+  total_chunks: number
+  duration_ms:  number | null
+  file_label:   string | null
+}
+
+export interface StepInfo {
+  name:         StepName
+  status:       PipelineStatus
+  progress_pct: number
+  started_at:   string | null
+  finished_at:  string | null
+  metadata:     Record<string, unknown> | null
+}
+
+export interface RunInfo {
+  id:            number
+  pipeline_id:   number
+  status:        PipelineStatus
+  triggered_by:  string | null
+  started_at:    string | null
+  finished_at:   string | null
+  total_files:   number
+  total_pages:   number
+  total_chunks:  number
+  error_message: string | null
+  steps:         StepInfo[]
+}
+
+export interface CreateRunResponse {
+  run_id: number
+}
+
+// ─── Pipeline run SSE events ─────────────────────────────────────
+
+export interface RunSnapshotEvent {
+  type: 'snapshot'
+  run:  RunInfo
+}
+
+export interface RunStartedEvent {
+  type:        'run.started'
+  run_id:      number
+  ticker?:     string
+  filing_type?: string
+  period?:     string
+  local_path?: string
+}
+
+export interface StepStartedEvent {
+  type:   'step.started'
+  step:   StepName
+}
+
+export interface StepProgressEvent {
+  type:         'step.progress'
+  step:         StepName
+  progress_pct: number
+  batch?:       number
+  batches?:     number
+}
+
+export interface StepCompletedEvent {
+  type:    'step.completed'
+  step:    StepName
+  [key: string]: unknown
+}
+
+export interface RunCompletedEvent {
+  type:        'run.completed'
+  run_id:      number
+  document_id: number
+  chunks:      number
+  tokens:      number
+  seconds:     number
+  cost_usd:    number
+}
+
+export interface RunFailedEvent {
+  type:   'run.failed'
+  run_id: number
+  error:  string
+}
+
+export interface StreamEndEvent {
+  type: 'stream.end'
+}
+
+export type RunEvent =
+  | RunSnapshotEvent
+  | RunStartedEvent
+  | StepStartedEvent
+  | StepProgressEvent
+  | StepCompletedEvent
+  | RunCompletedEvent
+  | RunFailedEvent
+  | StreamEndEvent
+
 // ─── Search / Answer types ───────────────────────────────────────
 
 export type SearchMode = 'bm25' | 'dense' | 'hybrid' | 'hybrid_rerank'
@@ -128,6 +257,71 @@ export interface AnswerRequest {
 
 export const api = {
   health: () => request<HealthResponse>('/health'),
+
+  // ─── Pipelines ────────────────────────────────────────────────
+  listPipelines: () => request<PipelineInfo[]>('/pipelines'),
+
+  listFilings: () => request<FilingChip[]>('/pipelines/filings'),
+
+  listRuns: (pipelineId: number, opts: { status?: PipelineStatus; limit?: number } = {}) => {
+    const qs = new URLSearchParams()
+    if (opts.status) qs.set('status', opts.status)
+    if (opts.limit)  qs.set('limit', String(opts.limit))
+    const suffix = qs.toString() ? `?${qs}` : ''
+    return request<RunListItem[]>(`/pipelines/${pipelineId}/runs${suffix}`)
+  },
+
+  getRun: (runId: number) => request<RunInfo>(`/pipelines/runs/${runId}`),
+
+  createRun: (localPath: string) =>
+    request<CreateRunResponse>('/pipelines/runs', {
+      method: 'POST',
+      body: JSON.stringify({ local_path: localPath }),
+    }),
+
+  /** SSE stream of live run progress. Async-iterable of events. */
+  async *streamRunEvents(
+    runId: number,
+    opts: { signal?: AbortSignal } = {},
+  ): AsyncGenerator<RunEvent, void, unknown> {
+    const res = await fetch(`${API_BASE}/pipelines/runs/${runId}/events`, {
+      signal: opts.signal,
+    })
+    if (!res.ok || !res.body) {
+      throw new ApiError(`${res.status} ${res.statusText}`, res.status)
+    }
+
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+
+        const events = buffer.split('\n\n')
+        buffer = events.pop() ?? ''
+
+        for (const raw of events) {
+          if (!raw.trim() || raw.startsWith(':')) continue
+          let data = ''
+          for (const line of raw.split('\n')) {
+            if (line.startsWith('data: ')) data += line.slice(6)
+          }
+          if (!data) continue
+          try {
+            yield JSON.parse(data) as RunEvent
+          } catch {
+            /* malformed event */
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock()
+    }
+  },
 
   /** Open an SSE stream for a RAG answer. Async-iterable of events. */
   async *streamAnswer(

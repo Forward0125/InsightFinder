@@ -201,6 +201,7 @@ async def _run_steps(run_id: int, local_path: Path) -> RunResult:
                 }
                 for i, c in enumerate(chunks)
             ],
+            pipeline_run_id=run_id,
         )
     index_s = time.perf_counter() - t0
 

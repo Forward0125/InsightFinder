@@ -91,11 +91,17 @@ async def replace_chunks(
     conn: asyncpg.Connection,
     document_id: int,
     chunks: list[dict],
+    *,
+    pipeline_run_id: int | None = None,
 ) -> int:
     """Delete existing chunks for the document and bulk-insert new ones.
 
     ``chunks`` is a list of dicts with keys: text, token_count,
     embedding (list[float] or numpy array), metadata (dict).
+
+    ``pipeline_run_id`` is stored on each chunk so listing queries
+    (``/pipelines/{id}/runs``) can join chunks back to the run that
+    produced them and surface a file_label.
 
     Wraps everything in a single transaction so a failure mid-insert
     doesn't leave the document in a half-indexed state.
@@ -103,6 +109,7 @@ async def replace_chunks(
     rows = [
         (
             document_id,
+            pipeline_run_id,
             i,
             c["text"],
             c.get("token_count"),
@@ -122,12 +129,18 @@ async def replace_chunks(
         await conn.executemany(
             """
             INSERT INTO chunks (
-                document_id, chunk_index, text, token_count, embedding, metadata
+                document_id, pipeline_run_id, chunk_index, text,
+                token_count, embedding, metadata
             )
-            VALUES ($1, $2, $3, $4, $5, $6::jsonb)
+            VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
             """,
             rows,
         )
-        log.info("index.chunks_inserted", document_id=document_id, n=len(rows))
+        log.info(
+            "index.chunks_inserted",
+            document_id=document_id,
+            run_id=pipeline_run_id,
+            n=len(rows),
+        )
 
     return len(rows)

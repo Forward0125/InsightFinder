@@ -21,7 +21,7 @@
 
 ## Frontend (3 surfaces)
 - [x] **12. Query Detail View** — search bar w/ mode chips, streaming answer with clickable citation chips, sources table with per-stage scores, eval gates card (animated bars + reasoning), right rail (filters/history/logs). Verified end-to-end SSE through the Next.js /api/* rewrite
-- [ ] **13. Pipelines View** — matches `02_2.webp`
+- [x] **13. Pipelines View** — React Flow DAG with live SSE-driven step animation, status sidebar (All/Running/Success/Failed), filing picker modal (5 runs/IP/hr), Recent Jobs table joining chunks → docs for file labels. Visitor-triggered run goes through end-to-end DB+UI
 - [ ] **14. Dashboard** — matches `02_3.webp`
 
 ## Ship
@@ -29,4 +29,4 @@
 
 ---
 
-**Currently:** finished step 12.
+**Currently:** finished step 13.
