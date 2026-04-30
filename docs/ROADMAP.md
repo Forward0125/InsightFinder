@@ -20,7 +20,7 @@
 - [x] **11. Eval gates** — single LLM-as-judge call (gpt-4o-mini, strict JSON schema response) scores faithfulness/relevance/hallucination after the answer streams; emitted as final SSE `eval` event; persisted to eval_scores; thresholds 0.7/0.7/0.3 (~$0.0005/eval, ~5s)
 
 ## Frontend (3 surfaces)
-- [ ] **12. Query Detail View** — matches `02_1.webp`
+- [x] **12. Query Detail View** — search bar w/ mode chips, streaming answer with clickable citation chips, sources table with per-stage scores, eval gates card (animated bars + reasoning), right rail (filters/history/logs). Verified end-to-end SSE through the Next.js /api/* rewrite
 - [ ] **13. Pipelines View** — matches `02_2.webp`
 - [ ] **14. Dashboard** — matches `02_3.webp`
 
@@ -29,4 +29,4 @@
 
 ---
 
-**Currently:** finished step 11.
+**Currently:** finished step 12.

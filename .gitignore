@@ -38,11 +38,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
-parts/
 sdist/
-var/
 wheels/
 *.egg-info/
 .installed.cfg
@@ -55,6 +51,11 @@ MANIFEST
 htmlcov/
 .tox/
 .hypothesis/
+
+# DELIBERATELY NOT IGNORING: lib/, lib64/, parts/, var/.
+# Those are part of the legacy Python egg-install template, but this
+# repo's frontend lives under web/lib/. The Python venv is at .venv/
+# (see uv setup) and is already excluded.
 
 # uv lockfile is committed; cache is not
 .uv/
