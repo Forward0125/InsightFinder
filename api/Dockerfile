@@ -21,16 +21,18 @@ ENV PYTHONUNBUFFERED=1 \
     UV_LINK_MODE=copy \
     UV_COMPILE_BYTECODE=1
 
-# 1) Install dependencies first so the layer is cacheable across
-#    code-only changes. We omit dev tools and the rerank extra.
+# Install dependencies. Cacheable across code-only changes.
+# `--no-install-project` skips installing this repo as a package -- we
+# don't need it (uvicorn finds `app.main:app` via WORKDIR + sys.path),
+# and an editable install would trip on Hatchling's README check
+# since .dockerignore omits the README from the build context.
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
-# 2) Copy the project and install it.
+# App source.
 COPY app     ./app
 COPY alembic ./alembic
 COPY alembic.ini ./
-RUN uv sync --frozen --no-dev
 
 # Make the venv's binaries available without `uv run`.
 ENV PATH="/app/.venv/bin:${PATH}"
