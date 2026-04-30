@@ -8,9 +8,15 @@ From the repo root, ensure `.env` is set up (see `../.env.example`), then:
 
 ```bash
 cd api
-uv sync                       # creates .venv and installs deps
+uv sync --all-extras          # creates .venv, installs deps + rerank model
 uv run python run.py          # starts dev server with autoreload
 ```
+
+The `--all-extras` flag pulls in `sentence-transformers` (and torch),
+which the cross-encoder rerank step needs. Production deploys (Render
+free tier, 512 MB RAM) skip this with a plain `uv sync` — see the
+Dockerfile. With rerank disabled, the `hybrid_rerank` mode silently
+falls back to plain `hybrid`.
 
 `run.py` is a small wrapper around `uvicorn.run` that handles CLI args
 without remembering uvicorn flags. Cross-platform — asyncpg works with

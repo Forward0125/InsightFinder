@@ -1,0 +1,27 @@
+# Keep the build context lean.
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Tests + scripts not needed at runtime
+tests/
+scripts/
+
+# Don't leak local env or pre-built artifacts
+.env
+.env.*
+README.md
+*.tsbuildinfo

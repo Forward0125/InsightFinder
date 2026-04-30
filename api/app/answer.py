@@ -36,6 +36,7 @@ from app.eval import evaluate, persist_eval
 from app.logging import get_logger
 from app.search.service import SearchMode, search
 from app.settings import settings
+from app.spend_tracker import tracker as spend_tracker
 
 
 log = get_logger(__name__)
@@ -328,6 +329,7 @@ async def stream_answer(
     # ─── Parse citations + cost ─────────────────────────────────
     cited = extract_cited(response_text, max_n=len(result.hits))
     cost = calc_cost(model, tokens_in, tokens_out)
+    spend_tracker.add(cost)
 
     timings_full = {
         **result.latency_ms,
@@ -402,6 +404,7 @@ async def stream_answer(
     eval_cost = calc_cost(
         eval_result.evaluator_model, eval_result.tokens_in, eval_result.tokens_out,
     )
+    spend_tracker.add(eval_cost)
     yield {
         "type": "eval",
         "query_id": query_id,

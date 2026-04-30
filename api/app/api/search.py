@@ -15,7 +15,9 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from app.answer import stream_answer, to_sse
+from app.rate_limit import search_answer_limiter
 from app.search.service import SearchMode, search
+from app.spend_tracker import tracker as spend_tracker
 
 
 router = APIRouter(tags=["search"])
@@ -128,7 +130,24 @@ async def post_search_answer(req: AnswerRequest, request: Request) -> StreamingR
       - ``token`` : one delta of the answer text (many of these)
       - ``done``  : final tally (query_id, cited[], cost, total latency)
       - ``error`` : something went wrong; client should stop reading
+
+    Cost guards:
+      - 30 answer requests / hour / IP
+      - global daily OpenAI cap (resets at UTC midnight)
     """
+    ip = request.client.host if request.client else "unknown"
+    allowed, _remaining = search_answer_limiter.check(ip)
+    if not allowed:
+        raise HTTPException(
+            429,
+            "rate limit: 30 answer requests per hour per IP -- try again later",
+        )
+    if not spend_tracker.under_cap():
+        raise HTTPException(
+            503,
+            "daily OpenAI spend cap reached -- service resumes at UTC midnight",
+        )
+
     async def gen() -> AsyncGenerator[str, None]:
         try:
             async for event in stream_answer(

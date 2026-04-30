@@ -1,0 +1,47 @@
+# Render blueprint for InsightFinder.
+#
+# Render auto-creates this service when you "New > Blueprint" from
+# the connected repo. You can also create the service manually
+# (Web Service > Docker > pick this rootDir).
+#
+# After first deploy, set the SECRET env vars in the Render dashboard:
+#   DATABASE_URL          (from your Neon project)
+#   OPENAI_API_KEY        (from platform.openai.com)
+#   API_CORS_ORIGINS      (your Vercel URL, e.g. https://insightfinder-foo.vercel.app)
+#
+# Render will rebuild + redeploy on every push to `main`.
+
+services:
+  - type: web
+    name: insightfinder-api
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    rootDir: api
+    dockerfilePath: Dockerfile
+    healthCheckPath: /health
+    envVars:
+      # Secrets -- set via dashboard, never commit.
+      - key: DATABASE_URL
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: API_CORS_ORIGINS
+        sync: false
+
+      # Defaults baked in here.
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: SEC_USER_AGENT
+        value: "InsightFinder Demo demo@insightfinder.dev"
+      - key: ENABLE_RERANK
+        value: "false"          # 512MB tier won't hold torch + the model
+      - key: DAILY_SPEND_CAP_USD
+        value: "5.0"
+      - key: LOG_LEVEL
+        value: "INFO"
+      - key: EMBEDDING_MODEL
+        value: "text-embedding-3-small"
+      - key: GENERATOR_MODEL
+        value: "gpt-4o-mini"

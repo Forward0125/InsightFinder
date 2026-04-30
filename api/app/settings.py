@@ -45,6 +45,13 @@ class Settings(BaseSettings):
     max_upload_mb: int = 5
     max_pages_per_pdf: int = 50
     rate_limit_per_ip_per_hour: int = 20
+    # Daily OpenAI spend cap across all users. Reset at UTC midnight.
+    # Set generously low for free demo; raise via env var if needed.
+    daily_spend_cap_usd: float = 5.0
+    # Disable the cross-encoder rerank in production environments where
+    # the model + torch don't fit (e.g. Render free tier 512MB).
+    # When false, hybrid_rerank silently falls back to hybrid.
+    enable_rerank: bool = True
 
     # ─── Observability ──────────────────────────────────────────
     log_level: str = "INFO"

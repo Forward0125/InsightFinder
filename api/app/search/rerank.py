@@ -1,9 +1,16 @@
 """Cross-encoder rerank using a local sentence-transformers model.
 
-The model (``BAAI/bge-reranker-base``, ~280 MB) is lazy-loaded on the
-first reranking call. After that it stays in memory for the life of
-the process. Predictions are run inside ``asyncio.to_thread`` so the
-event loop isn't blocked while torch crunches.
+The model (``cross-encoder/ms-marco-MiniLM-L-6-v2``, ~80 MB) is lazy-
+loaded on the first reranking call. After that it stays in memory for
+the life of the process. Predictions are run inside
+``asyncio.to_thread`` so the event loop isn't blocked while torch
+crunches.
+
+This module is the only one that depends on sentence-transformers,
+which is an optional install (``uv sync --all-extras``). On hosts
+where it's not installed (production: Render free tier doesn't fit
+torch + the model in 512MB), ``is_available()`` returns False and the
+search service silently falls back to plain hybrid mode.
 """
 
 from __future__ import annotations
@@ -23,6 +30,21 @@ log = get_logger(__name__)
 
 _model = None
 _lock = threading.Lock()
+
+
+def is_available() -> bool:
+    """True iff sentence-transformers is installed AND rerank is enabled.
+
+    Used by the search service to decide whether to run rerank or fall
+    back to plain hybrid. Cheap to call (no model load).
+    """
+    if not settings.enable_rerank:
+        return False
+    try:
+        import sentence_transformers  # noqa: F401
+    except ImportError:
+        return False
+    return True
 
 
 def _load_model():

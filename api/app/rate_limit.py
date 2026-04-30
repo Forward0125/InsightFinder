@@ -58,4 +58,5 @@ class IPRateLimiter:
 
 
 # Module-level singletons, one per protected endpoint.
-pipeline_runs_limiter = IPRateLimiter(max_events=5, window_seconds=3600.0)
+pipeline_runs_limiter = IPRateLimiter(max_events=5,  window_seconds=3600.0)
+search_answer_limiter = IPRateLimiter(max_events=30, window_seconds=3600.0)

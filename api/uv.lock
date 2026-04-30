@@ -642,10 +642,14 @@ dependencies = [
     { name = "psycopg", extra = ["binary"] },
     { name = "pydantic-settings" },
     { name = "selectolax" },
-    { name = "sentence-transformers" },
     { name = "sqlalchemy" },
     { name = "structlog" },
     { name = "tiktoken" },
+]
+
+[package.optional-dependencies]
+rerank = [
+    { name = "sentence-transformers" },
 ]
 
 [package.dev-dependencies]
@@ -667,11 +671,12 @@ requires-dist = [
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
     { name = "pydantic-settings", specifier = ">=2.5" },
     { name = "selectolax", specifier = ">=0.3" },
-    { name = "sentence-transformers", specifier = ">=3.0" },
+    { name = "sentence-transformers", marker = "extra == 'rerank'", specifier = ">=3.0" },
     { name = "sqlalchemy", specifier = ">=2.0" },
     { name = "structlog", specifier = ">=24.4" },
     { name = "tiktoken", specifier = ">=0.7" },
 ]
+provides-extras = ["rerank"]
 
 [package.metadata.requires-dev]
 dev = [

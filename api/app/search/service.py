@@ -21,7 +21,7 @@ from typing import Literal
 from app import db
 from app.ingest.embed import embed_query
 from app.logging import get_logger
-from app.search.rerank import rerank
+from app.search.rerank import is_available as rerank_available, rerank
 from app.search.retrieve import (
     Hit,
     bm25_search,
@@ -102,9 +102,17 @@ async def search(
         hits = fused[:candidates]
 
     if mode == "hybrid_rerank":
-        t0 = time.perf_counter()
-        hits = await rerank(query, hits, top_k=top_k)
-        timings["rerank_ms"] = int((time.perf_counter() - t0) * 1000)
+        if rerank_available():
+            t0 = time.perf_counter()
+            hits = await rerank(query, hits, top_k=top_k)
+            timings["rerank_ms"] = int((time.perf_counter() - t0) * 1000)
+        else:
+            # Graceful fallback in environments where sentence-transformers
+            # isn't installed (prod) or has been disabled. The frontend
+            # toggle still "works", just resolves to plain hybrid.
+            log.info("search.rerank_unavailable_fallback")
+            hits = hits[:top_k]
+            timings["rerank_ms"] = 0
     elif mode == "hybrid":
         hits = hits[:top_k]
     # bm25 / dense modes already truncated to top_k.

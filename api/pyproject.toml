@@ -21,8 +21,17 @@ dependencies = [
     "tiktoken>=0.7",       # OpenAI token counting for chunk-size budgeting
     "openai>=1.50",        # text-embedding-3-small + Claude via Anthropic later
     # Retrieval
-    "numpy>=1.26",                          # already pulled in by pgvector
-    "sentence-transformers>=3.0",           # cross-encoder rerank (BAAI/bge-reranker-base)
+    "numpy>=1.26",         # already pulled in by pgvector
+]
+
+[project.optional-dependencies]
+# Cross-encoder rerank: 280 MB model + ~400 MB torch in RAM. Local-only
+# by default. Prod (Render free tier, 512 MB) skips this and the
+# hybrid_rerank mode falls back to hybrid silently.
+#
+# Local install:  uv sync --all-extras
+rerank = [
+    "sentence-transformers>=3.0",
 ]
 
 [dependency-groups]
