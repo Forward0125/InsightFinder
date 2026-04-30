@@ -48,10 +48,23 @@ uv run pytest                      # tests
 ## Search
 
 ```bash
+# Just retrieval -- ranked chunks, no generation
 curl -X POST http://localhost:8000/search \
   -H "Content-Type: application/json" \
   -d '{"query": "data center capital expenditures", "mode": "hybrid", "top_k": 5}'
+
+# Cited RAG answer streamed as Server-Sent Events
+curl -N -X POST http://localhost:8000/search/answer \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What was Apple iPhone revenue in Q1 2026?", "mode": "hybrid", "top_k": 6}'
 ```
+
+`/search/answer` emits these SSE events:
+
+  - `meta` — sources + retrieval-stage latency
+  - `token` — one delta of the answer (many of these)
+  - `done` — query_id, cited[], tokens, cost, total latency
+  - `error` — something went wrong
 
 Modes:
 

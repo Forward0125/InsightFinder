@@ -16,7 +16,7 @@
 
 ## Retrieval & Answer
 - [x] **9. Hybrid retrieval + local rerank** — POST /search with 4 modes (bm25 / dense / hybrid / hybrid_rerank). Postgres FTS + pgvector run in parallel via two pool acquires + asyncio.gather, fused with RRF. Cross-encoder MiniLM-L6 reranks. Steady-state: hybrid ~700 ms, hybrid_rerank ~16 s on CPU
-- [ ] **10. Streaming answer with citations** — Claude generates answer with `[1][2][3]` citations
+- [x] **10. Streaming answer with citations** — POST /search/answer SSE; OpenAI gpt-4o-mini generates with strict "cite [N]" prompt; citation regex extracts cited sources; queries + query_results rows persisted (~$0.0005/query, ~5s total)
 - [ ] **11. Eval gates** — faithfulness, relevance, hallucination scoring per query
 
 ## Frontend (3 surfaces)
@@ -29,4 +29,4 @@
 
 ---
 
-**Currently:** finished step 9.
+**Currently:** finished step 10.

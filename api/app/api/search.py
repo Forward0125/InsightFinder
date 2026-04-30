@@ -7,11 +7,14 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncGenerator
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from app.answer import stream_answer, to_sse
 from app.search.service import SearchMode, search
 
 
@@ -103,4 +106,49 @@ async def post_search(req: SearchRequest) -> SearchResponse:
         mode=result.mode,
         hits=hits,
         latency_ms=result.latency_ms,
+    )
+
+
+# ─── Streaming RAG answer ───────────────────────────────────────
+
+
+class AnswerRequest(BaseModel):
+    query: str = Field(..., min_length=1, max_length=500)
+    mode:  SearchMode = "hybrid"
+    top_k: int = Field(8, ge=1, le=20)
+    candidates: int = Field(30, ge=10, le=100)
+
+
+@router.post("/search/answer")
+async def post_search_answer(req: AnswerRequest, request: Request) -> StreamingResponse:
+    """Stream a cited RAG answer as Server-Sent Events.
+
+    Event types:
+      - ``meta``  : sources + search-stage latency, sent before any token
+      - ``token`` : one delta of the answer text (many of these)
+      - ``done``  : final tally (query_id, cited[], cost, total latency)
+      - ``error`` : something went wrong; client should stop reading
+    """
+    async def gen() -> AsyncGenerator[str, None]:
+        try:
+            async for event in stream_answer(
+                req.query,
+                mode=req.mode,
+                top_k=req.top_k,
+                candidates=req.candidates,
+            ):
+                if await request.is_disconnected():
+                    return
+                yield to_sse(event)
+        except Exception as exc:
+            yield to_sse({"type": "error", "error": str(exc)})
+
+    return StreamingResponse(
+        gen(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
     )

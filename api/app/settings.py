@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     anthropic_api_key: str = Field(default="", description="Anthropic API key")
     embedding_model: str = "text-embedding-3-small"
     reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
-    generator_model: str = "claude-sonnet-4-6"
+    generator_model: str = "gpt-4o-mini"
 
     # ─── API server ─────────────────────────────────────────────
     api_host: str = "0.0.0.0"
