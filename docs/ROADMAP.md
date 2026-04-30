@@ -22,11 +22,11 @@
 ## Frontend (3 surfaces)
 - [x] **12. Query Detail View** — search bar w/ mode chips, streaming answer with clickable citation chips, sources table with per-stage scores, eval gates card (animated bars + reasoning), right rail (filters/history/logs). Verified end-to-end SSE through the Next.js /api/* rewrite
 - [x] **13. Pipelines View** — React Flow DAG with live SSE-driven step animation, status sidebar (All/Running/Success/Failed), filing picker modal (5 runs/IP/hr), Recent Jobs table joining chunks → docs for file labels. Visitor-triggered run goes through end-to-end DB+UI
-- [ ] **14. Dashboard** — matches `02_3.webp`
+- [x] **14. Dashboard** — `GET /dashboard/summary` rolls up KPIs / 7-day timeseries (p50/p95/queries) / top 10 queries / alerts in one round-trip; alerts are auto-emitted on eval-gate failures + pipeline failures; frontend polls every 5s and renders Recharts performance trends
 
 ## Ship
 - [ ] **15. Polish, cost guards, deploy** — rate limits, demo seeding, deploy to Vercel + Fly.io + Neon
 
 ---
 
-**Currently:** finished step 13.
+**Currently:** finished step 14.

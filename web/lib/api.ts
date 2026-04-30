@@ -175,6 +175,54 @@ export type RunEvent =
   | RunFailedEvent
   | StreamEndEvent
 
+// ─── Dashboard ───────────────────────────────────────────────────
+
+export interface KPIs {
+  avg_response_ms: number | null
+  avg_citations:   number | null
+  eval_pass_rate:  number | null
+  active_runs:     number
+  queries_total:   number
+  queries_last_7d: number
+}
+
+export interface TimeseriesPoint {
+  day:     string
+  queries: number
+  p50_ms:  number | null
+  p95_ms:  number | null
+}
+
+export interface TopQuery {
+  id:               number
+  query_text:       string
+  retrieval_mode:   string
+  latency_total_ms: number | null
+  cost_usd:         number | null
+  cited_count:      number
+  results_count:    number
+  gates_passed:     boolean | null
+  created_at:       string  | null
+}
+
+export type AlertSeverity = 'info' | 'warning' | 'error'
+
+export interface AlertRow {
+  id:         number
+  severity:   AlertSeverity
+  title:      string
+  body:       string | null
+  source:     string | null
+  created_at: string | null
+}
+
+export interface DashboardSummary {
+  kpis:        KPIs
+  timeseries:  TimeseriesPoint[]
+  top_queries: TopQuery[]
+  alerts:      AlertRow[]
+}
+
 // ─── Search / Answer types ───────────────────────────────────────
 
 export type SearchMode = 'bm25' | 'dense' | 'hybrid' | 'hybrid_rerank'
@@ -272,6 +320,9 @@ export const api = {
   },
 
   getRun: (runId: number) => request<RunInfo>(`/pipelines/runs/${runId}`),
+
+  // ─── Dashboard ────────────────────────────────────────────────
+  dashboardSummary: () => request<DashboardSummary>('/dashboard/summary'),
 
   createRun: (localPath: string) =>
     request<CreateRunResponse>('/pipelines/runs', {

@@ -23,6 +23,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from app import db
+from app.alerts import emit_alert
 from app.ingest import embed, extract, index, runs
 from app.ingest.chunk import chunk_text
 from app.ingest.embed import BATCH_SIZE as EMBED_BATCH_SIZE
@@ -272,6 +273,13 @@ async def run_pipeline_inline(
             "error": str(exc),
         })
         log.error("pipeline.failed", run_id=run_id, error=str(exc))
+        await emit_alert(
+            severity="error",
+            title=f"Pipeline run #{run_id} failed",
+            body=str(exc)[:500],
+            source="ingestion",
+            metadata={"run_id": run_id},
+        )
         raise
     finally:
         await broker.end(run_id)

@@ -384,6 +384,21 @@ async def stream_answer(
     except Exception as exc:
         log.error("answer.eval_persist_failed", error=str(exc))
 
+    # Surface gate failures to the dashboard's alerts feed.
+    if not eval_result.gates_passed:
+        from app.alerts import emit_alert
+        await emit_alert(
+            severity="warning",
+            title=f"Eval gate failed for query #{query_id}",
+            body=(
+                f"fai={eval_result.faithfulness:.2f}  "
+                f"rel={eval_result.answer_relevance:.2f}  "
+                f"halo={eval_result.hallucination_risk:.2f}"
+            ),
+            source="eval",
+            metadata={"query_id": query_id, "model": eval_result.evaluator_model},
+        )
+
     eval_cost = calc_cost(
         eval_result.evaluator_model, eval_result.tokens_in, eval_result.tokens_out,
     )
