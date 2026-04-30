@@ -32,6 +32,7 @@ from typing import Any
 from openai import AsyncOpenAI
 
 from app import db
+from app.eval import evaluate, persist_eval
 from app.logging import get_logger
 from app.search.service import SearchMode, search
 from app.settings import settings
@@ -361,6 +362,44 @@ async def stream_answer(
         "tokens_out": tokens_out,
         "cost_usd": round(cost, 6),
         "latency_ms": timings_full,
+    }
+
+    # ─── Eval gates ─────────────────────────────────────────────
+    # Run the LLM-as-judge after the user has already seen their
+    # answer. Stays inside the same SSE stream so the frontend can
+    # animate the scores in without opening a second connection.
+    if query_id is None:
+        return
+
+    eval_start = time.perf_counter()
+    try:
+        eval_result = await evaluate(query, result.hits, response_text)
+    except Exception as exc:
+        log.error("answer.eval_failed", error=str(exc))
+        yield {"type": "eval_failed", "error": str(exc)}
+        return
+
+    try:
+        await persist_eval(query_id, eval_result)
+    except Exception as exc:
+        log.error("answer.eval_persist_failed", error=str(exc))
+
+    eval_cost = calc_cost(
+        eval_result.evaluator_model, eval_result.tokens_in, eval_result.tokens_out,
+    )
+    yield {
+        "type": "eval",
+        "query_id": query_id,
+        "faithfulness":       round(eval_result.faithfulness, 3),
+        "answer_relevance":   round(eval_result.answer_relevance, 3),
+        "hallucination_risk": round(eval_result.hallucination_risk, 3),
+        "gates_passed":       eval_result.gates_passed,
+        "reasoning":          eval_result.reasoning,
+        "evaluator_model":    eval_result.evaluator_model,
+        "tokens_in":          eval_result.tokens_in,
+        "tokens_out":         eval_result.tokens_out,
+        "cost_usd":           round(eval_cost, 6),
+        "latency_ms":         int((time.perf_counter() - eval_start) * 1000),
     }
 
 

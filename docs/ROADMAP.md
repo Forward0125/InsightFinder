@@ -17,7 +17,7 @@
 ## Retrieval & Answer
 - [x] **9. Hybrid retrieval + local rerank** — POST /search with 4 modes (bm25 / dense / hybrid / hybrid_rerank). Postgres FTS + pgvector run in parallel via two pool acquires + asyncio.gather, fused with RRF. Cross-encoder MiniLM-L6 reranks. Steady-state: hybrid ~700 ms, hybrid_rerank ~16 s on CPU
 - [x] **10. Streaming answer with citations** — POST /search/answer SSE; OpenAI gpt-4o-mini generates with strict "cite [N]" prompt; citation regex extracts cited sources; queries + query_results rows persisted (~$0.0005/query, ~5s total)
-- [ ] **11. Eval gates** — faithfulness, relevance, hallucination scoring per query
+- [x] **11. Eval gates** — single LLM-as-judge call (gpt-4o-mini, strict JSON schema response) scores faithfulness/relevance/hallucination after the answer streams; emitted as final SSE `eval` event; persisted to eval_scores; thresholds 0.7/0.7/0.3 (~$0.0005/eval, ~5s)
 
 ## Frontend (3 surfaces)
 - [ ] **12. Query Detail View** — matches `02_1.webp`
@@ -29,4 +29,4 @@
 
 ---
 
-**Currently:** finished step 10.
+**Currently:** finished step 11.
