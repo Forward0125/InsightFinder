@@ -6,6 +6,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from app import db
+from app.cache import answer_cache
 from app.logging import get_logger
 
 
@@ -32,3 +33,10 @@ async def health() -> HealthResponse:
     except Exception as exc:
         log.warning("health.db_check_failed", error=str(exc))
         return HealthResponse(status="ok", db="unreachable")
+
+
+@router.get("/cache/stats")
+async def cache_stats() -> dict:
+    """Visibility into the /search/answer result cache. Handy for
+    confirming hit rate during a portfolio demo."""
+    return answer_cache.stats()

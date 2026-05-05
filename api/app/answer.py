@@ -32,6 +32,7 @@ from typing import Any
 from openai import AsyncOpenAI
 
 from app import db
+from app.cache import answer_cache, make_key
 from app.eval import evaluate, persist_eval
 from app.logging import get_logger
 from app.search.service import SearchMode, search
@@ -230,7 +231,7 @@ def _hit_to_source(rank: int, h: Any) -> dict[str, Any]:
     }
 
 
-async def stream_answer(
+async def _stream_answer_inner(
     query: str,
     *,
     mode: SearchMode = "hybrid",
@@ -429,3 +430,53 @@ def to_sse(event: dict[str, Any]) -> str:
     name = event.get("type", "message")
     data = json.dumps(event, default=str)
     return f"event: {name}\ndata: {data}\n\n"
+
+
+# ─── Caching wrapper ────────────────────────────────────────────
+
+
+async def stream_answer(
+    query:      str,
+    *,
+    mode:       SearchMode = "hybrid",
+    top_k:      int = 8,
+    candidates: int = 30,
+    model:      str | None = None,
+):
+    """Cache-aware wrapper around the real generator.
+
+    On cache hit, replays the captured event list instantly (sub-50ms
+    end-to-end). On miss, runs the full pipeline and stores the
+    successful event sequence for future hits.
+
+    See app/cache.py for the trade-off discussion (in particular: hits
+    don't write a fresh queries row, so dashboard counters undercount
+    cached views).
+    """
+    cache_key = make_key(query, mode, top_k, candidates)
+
+    cached = answer_cache.get(cache_key)
+    if cached is not None:
+        log.info("answer.cache_hit", q=query[:60], mode=mode, n_events=len(cached))
+        for event in cached:
+            yield event
+        return
+
+    captured: list[dict[str, Any]] = []
+    saw_done = False
+    saw_error = False
+
+    async for event in _stream_answer_inner(
+        query, mode=mode, top_k=top_k, candidates=candidates, model=model,
+    ):
+        captured.append(event)
+        if event.get("type") == "done" and event.get("query_id") is not None:
+            saw_done = True
+        if event.get("type") in ("error", "run.failed"):
+            saw_error = True
+        yield event
+
+    # Only cache full successful runs that produced a real query_id.
+    if saw_done and not saw_error:
+        answer_cache.set(cache_key, captured)
+        log.info("answer.cache_store", q=query[:60], mode=mode, n_events=len(captured))
